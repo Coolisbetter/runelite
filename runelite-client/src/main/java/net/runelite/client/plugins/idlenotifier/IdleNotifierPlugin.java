@@ -25,6 +25,7 @@
  */
 package net.runelite.client.plugins.idlenotifier;
 
+import java.awt.Toolkit;
 import com.google.inject.Provides;
 import java.time.Duration;
 import java.time.Instant;
@@ -285,8 +286,8 @@ public class IdleNotifierPlugin extends Plugin
 				break;
 			default:
 				// On unknown animation simply assume the animation is invalid and dont throw notification
-				lastAnimation = IDLE;
-				lastAnimating = null;
+				lastAnimation = animation;
+				lastAnimating = Instant.now();
 		}
 	}
 
@@ -411,10 +412,10 @@ public class IdleNotifierPlugin extends Plugin
 		lastCombatCountdown = Math.max(lastCombatCountdown - 1, 0);
 
 		if (client.getGameState() != GameState.LOGGED_IN
-			|| local == null
+			|| local == null)
 			// If user has clicked in the last second then they're not idle so don't send idle notification
-			|| System.currentTimeMillis() - client.getMouseLastPressedMillis() < 1000
-			|| client.getKeyboardIdleTicks() < 10)
+			//|| System.currentTimeMillis() - client.getMouseLastPressedMillis() < 1000
+			//|| client.getKeyboardIdleTicks() < 10)
 		{
 			resetTimers();
 			return;
@@ -433,6 +434,9 @@ public class IdleNotifierPlugin extends Plugin
 		if (config.animationIdle() && checkAnimationIdle(waitDuration, local))
 		{
 			notifier.notify("[" + local.getName() + "] is now idle!");
+			Toolkit.getDefaultToolkit().beep();
+			System.out.println("stopped animating");
+
 		}
 
 		if (config.movementIdle() && checkMovementIdle(waitDuration, local))
@@ -449,12 +453,17 @@ public class IdleNotifierPlugin extends Plugin
 			else
 			{
 				notifier.notify("[" + local.getName() + "] is now idle!");
+				Toolkit.getDefaultToolkit().beep();
+				System.out.println("stopped interacting");
+
 			}
 		}
 
 		if (checkLowHitpoints())
 		{
 			notifier.notify("[" + local.getName() + "] has low hitpoints!");
+			Toolkit.getDefaultToolkit().beep();
+
 		}
 
 		if (checkLowPrayer())
